@@ -1,0 +1,41 @@
+library(tidyverse)
+#remotes::install_github("ropensci/visdat")
+#library(visdat, force = TRUE)
+library(readxl)
+library(dplyr)
+library(scales)
+
+crash_data <- read_csv("Crash_Analysis_System_CAS_data.csv")
+
+crash_data %>% names()
+ 
+
+population_data <- read_xlsx("2018_population.xlsx", skip = 6, sheet = "Table 3")
+head(population_data)
+
+
+population_data <- as.tbl(population_data) %>% 
+  rename("tlaName" = "Territorial authority area", "population" = "...4")
+
+population_data <- population_data[1:67,]
+
+population_data
+
+merged_data <- merge(x = crash_data, y = population_data, by = "tlaName", all.x = TRUE)
+
+crash_count_road_curvature <- merged_data %>% select(OBJECTID,roadCurvat) %>% group_by(roadCurvat) %>% summarise(crashcount=n())
+
+crash_count_road_curvature
+
+crash_count_road_curvature = crash_count_road_curvature[-c(5),]
+
+
+p<-ggplot(crash_count_road_curvature, aes(x=roadCurvat, y=crashcount, fill=roadCurvat)) +
+  geom_bar(stat="identity") + theme(text = element_text(size=11),
+                                    axis.text.x = element_text(angle=90, hjust=1)) + ggtitle("Number of road accidents vs road curvature")+theme(plot.title = element_text(size = 11)) + scale_y_continuous(name="Number of road accidents", labels = comma)
+p
+
+
+crash_count_road_curvature = crash_count_road_curvature[-c(5),]
+
+crash_count_road_curvature
